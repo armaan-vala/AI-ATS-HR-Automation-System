@@ -2,7 +2,7 @@
 
 ![Hero Image](assets/homepages.png)
 
-**TalentOS** is an enterprise-grade, event-driven SaaS platform designed to automate the entire lifecycle of Human Resources—from recruitment to onboarding and daily management. 
+**TalentOS** is an enterprise-grade, event-driven SaaS platform designed to automate the lifecycle of Human Resources from recruitment to onboarding and daily management. 
 
 Unlike traditional HR tools that act as simple data entry forms, TalentOS acts as an **Intelligent Agent** working alongside your team. It utilizes **Generative AI (LLMs)**, **RAG (Retrieval-Augmented Generation)**, and **Asynchronous Workers** to handle complex tasks like resume scoring, policy answering, and leave approval automatically.
 
@@ -10,11 +10,11 @@ Unlike traditional HR tools that act as simple data entry forms, TalentOS acts a
 
 ## 🏗️ Tech Stack & Architecture
 
-* **Backend:** FastAPI (Python) - High-performance async API.
+* **Backend:** FastAPI 
 * **Task Queue:** Celery + Redis - Handles heavy lifting (PDF parsing, Emailing, AI inference) in the background without freezing the UI.
-* **Database:** Supabase (PostgreSQL) - Relational data + Vector Embeddings (`pgvector`).
+* **Database:** Supabase - Relational data + Vector Embeddings (`pgvector`).
 * **AI Engine:** Groq API (Llama-3 70B) & LangChain.
-* **Frontend:** HTML5, TailwindCSS, Vanilla JS (Lightweight & Fast).
+* **Frontend:** HTML, TailwindCSS, Vanilla JS.
 
 ---
 
@@ -36,8 +36,7 @@ When an Admin adds a new employee, the system **auto-generates a secure password
 | :---: | :---: |
 | ![Add Emp](assets/add%20employee.png) | ![Email Credentials](assets/employee-login-credentials.png) |
 
-### 3. 🤖 AI-Driven Recruitment (ATS)
-Stop reading resumes manually. TalentOS analyzes candidates for you.
+### 3. 🤖 AI-Driven Recruitment Via ATS
 * **Job Board:** Create job postings which act as the context for the AI.
 * **Smart Scoring:** The AI reads the uploaded Resume (PDF/DOCX), compares it with the Job Description, and assigns a **Match Score (0-100%)** with qualitative feedback.
 
