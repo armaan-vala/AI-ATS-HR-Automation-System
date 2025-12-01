@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Dashboard - TalentOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen p-8">
+
+    <nav class="flex justify-between items-center mb-10 border-b border-gray-700 pb-4">
+        <div>
+            <h1 class="text-2xl font-bold text-purple-400">TalentOS <span class="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded ml-2">EMPLOYEE</span></h1>
+            <p class="text-gray-400 text-sm mt-1" id="welcomeMsg">Welcome Back</p>
+        </div>
+        <button onclick="logout()" class="border border-red-400 text-red-400 px-4 py-2 rounded-lg hover:bg-red-900/20">Logout</button>
+    </nav>
+
+    <!-- STATS GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div class="bg-gray-800 p-6 rounded-xl border border-gray-600 flex flex-col justify-between h-32">
+            <h3 class="text-gray-400 text-xs uppercase">Total Leaves</h3>
+            <div class="text-4xl font-bold"><span id="totalLeaves">--</span> <span class="text-lg text-gray-500">Days</span></div>
+        </div>
+        <div class="bg-blue-600 p-6 rounded-xl shadow-lg flex flex-col justify-between h-32">
+            <h3 class="text-blue-100 text-xs uppercase">Balance Remaining</h3>
+            <div class="text-4xl font-bold"><span id="leaveBalance">--</span> <span class="text-lg">Days</span></div>
+        </div>
+        <div class="bg-green-600 p-6 rounded-xl shadow-lg flex flex-col justify-between h-32">
+            <h3 class="text-green-100 text-xs uppercase">Approved</h3>
+            <div class="text-4xl font-bold" id="leavesApproved">--</div>
+        </div>
+        <div class="bg-purple-600 p-6 rounded-xl shadow-lg flex flex-col justify-between h-32">
+            <h3 class="text-purple-100 text-xs uppercase">Organization</h3>
+            <div class="text-xl font-bold truncate" id="companyName">Loading...</div>
+        </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Chatbot -->
+        <div onclick="window.location.href='/chat'" class="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-2xl border border-blue-500/30 hover:border-blue-500 cursor-pointer flex items-center gap-6 transition">
+            <div class="w-16 h-16 bg-blue-900/50 rounded-2xl flex items-center justify-center text-3xl">🤖</div>
+            <div>
+                <h2 class="text-xl font-bold text-white">Ask HR Bot</h2>
+                <p class="text-gray-400 text-sm">Ask about policies or your leaves.</p>
+            </div>
+        </div>
+
+        <!-- Apply Leave -->
+        <div onclick="document.getElementById('leaveModal').classList.remove('hidden')" class="bg-gray-800 p-8 rounded-2xl border border-gray-700 hover:border-green-500 cursor-pointer flex items-center gap-6 transition">
+            <div class="w-16 h-16 bg-green-900/50 rounded-2xl flex items-center justify-center text-3xl">📝</div>
+            <div>
+                <h2 class="text-xl font-bold text-white">Apply for Leave</h2>
+                <p class="text-gray-400 text-sm">Submit a new leave request.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Modal -->
+    <div id="leaveModal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 p-8 rounded-2xl w-full max-w-lg border border-gray-700">
+            <h2 class="text-xl font-bold mb-4">Apply for Leave</h2>
+            <form id="leaveForm" class="space-y-4">
+                <textarea id="leaveReason" rows="2" placeholder="Reason" class="w-full p-3 bg-gray-900 border border-gray-600 rounded text-white" required></textarea>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="date" id="startDate" class="p-3 bg-gray-900 border border-gray-600 rounded text-white" required>
+                    <input type="date" id="endDate" class="p-3 bg-gray-900 border border-gray-600 rounded text-white" required>
+                </div>
+                <input type="number" id="daysCount" placeholder="Total Days" class="w-full p-3 bg-gray-900 border border-gray-600 rounded text-white" required>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" onclick="document.getElementById('leaveModal').classList.add('hidden')" class="px-4 py-2 bg-gray-700 rounded">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 rounded font-bold">Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem("access_token");
+        if(!token) window.location.href="/";
+        
+        document.getElementById('welcomeMsg').innerText = "Welcome, " + (localStorage.getItem("user_name") || "Employee");
+
+        function logout() { localStorage.clear(); window.location.href="/"; }
+
+        // 🔥 FETCH STATS FUNCTION
+        async function fetchStats() {
+            try {
+                const res = await fetch('/api/leaves/my-stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    console.error("API Error:", res.status);
+                    document.getElementById('companyName').innerText = "Error Loading";
+                    return;
+                }
+
+                const data = await res.json();
+                console.log("Stats Data:", data); // Console me check karna data aa raha hai ya nahi
+
+                // Update UI Cards
+                document.getElementById('totalLeaves').innerText = data.total_allocated;
+                document.getElementById('leaveBalance').innerText = data.balance;
+                document.getElementById('leavesApproved').innerText = data.accepted_count;
+                document.getElementById('companyName').innerText = data.company_name;
+
+            } catch (err) {
+                console.error("Network Error:", err);
+            }
+        }
+
+        // Call function immediately
+        fetchStats();
+
+        // Apply Leave Logic (Same as before)
+        document.getElementById('leaveForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                reason: document.getElementById('leaveReason').value,
+                start_date: document.getElementById('startDate').value,
+                end_date: document.getElementById('endDate').value,
+                days: parseInt(document.getElementById('daysCount').value)
+            };
+            const res = await fetch('/api/leaves/apply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            alert(`Status: ${result.status}`);
+            document.getElementById('leaveModal').classList.add('hidden');
+            fetchStats(); // Refresh cards after apply
+        });
+    </script>
+</body>
+</html>

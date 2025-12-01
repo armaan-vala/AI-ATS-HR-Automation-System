@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentOS - Job Board</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen p-10">
+
+    <div class="flex justify-between items-center mb-10">
+        <div>
+            <h1 class="text-3xl font-bold text-indigo-400">🚀 TalentOS Job Board</h1>
+            <p class="text-gray-400">AI-Powered ATS System</p>
+        </div>
+        <button onclick="document.getElementById('postJobModal').classList.remove('hidden')" 
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold transition">
+            + Post New Job
+        </button>
+    </div>
+
+    <div id="jobList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <p class="text-gray-500">Loading jobs...</p>
+    </div>
+
+    <div id="postJobModal" class="fixed inset-0 bg-black bg-opacity-80 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 p-8 rounded-2xl w-full max-w-lg border border-gray-700">
+            <h2 class="text-2xl font-bold mb-4 text-white">Post a New Job</h2>
+            <form id="postJobForm" class="space-y-4">
+                <input type="text" id="jobTitle" placeholder="Job Title (e.g. Python Dev)" class="w-full p-3 bg-gray-900 border border-gray-600 rounded-lg text-white" required>
+                <input type="text" id="jobLocation" placeholder="Location (e.g. Remote)" class="w-full p-3 bg-gray-900 border border-gray-600 rounded-lg text-white" required>
+                <textarea id="jobDesc" rows="4" placeholder="Job Description (Skills required...)" class="w-full p-3 bg-gray-900 border border-gray-600 rounded-lg text-white" required></textarea>
+                
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="button" onclick="document.getElementById('postJobModal').classList.add('hidden')" class="px-4 py-2 bg-gray-700 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-bold">Post Job</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="applyModal" class="fixed inset-0 bg-black bg-opacity-80 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 p-8 rounded-2xl w-full max-w-lg border border-gray-700">
+            <h2 class="text-2xl font-bold mb-2 text-white">Apply for <span id="applyJobTitle" class="text-indigo-400"></span></h2>
+            <p class="text-sm text-gray-400 mb-4">Upload resume to let AI scan it.</p>
+            
+            <form id="applyForm" class="space-y-4">
+                <input type="hidden" id="applyJobId">
+                <input type="text" id="candidateName" placeholder="Your Name" class="w-full p-3 bg-gray-900 border border-gray-600 rounded-lg text-white" required>
+                <input type="email" id="candidateEmail" placeholder="Your Email" class="w-full p-3 bg-gray-900 border border-gray-600 rounded-lg text-white" required>
+                
+                <label class="block w-full p-4 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:border-indigo-500 text-center">
+                    <span class="text-gray-400">Click to upload PDF/DOCX</span>
+                    <input type="file" id="resumeFile" class="hidden" accept=".pdf,.docx" required>
+                </label>
+
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="button" onclick="document.getElementById('applyModal').classList.add('hidden')" class="px-4 py-2 bg-gray-700 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold">Submit Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- 0. AUTHENTICATION (Token Logic) ---
+        // --- AUTHENTICATION ---
+        const token = localStorage.getItem("access_token");
+
+                // Agar token nahi hai, to Login page par bhejo
+            if (!token) {
+                alert("You must login first!");
+                window.location.href = "/login";
+            }
+
+        // --- 1. Load Jobs ---
+        async function loadJobs() {
+            try {
+                const res = await fetch('/api/ats/jobs', {
+                    headers: {
+                        'Authorization': `Bearer ${token}` 
+                    }
+                });
+
+                if (res.status === 401) {
+                    alert("Session expired or Invalid Token. Clearing token...");
+                    localStorage.removeItem("access_token");
+                    location.reload(); // Reload to trigger prompt again
+                    return;
+                }
+
+                if(!res.ok) throw new Error("Failed to load jobs");
+                const jobs = await res.json();
+                
+                const container = document.getElementById('jobList');
+                container.innerHTML = '';
+
+                if(jobs.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500">No jobs posted yet.</p>';
+                    return;
+                }
+
+                jobs.forEach(job => {
+                    const div = document.createElement('div');
+                    div.className = "bg-gray-800 p-6 rounded-xl border border-gray-700 hover:border-indigo-500 transition";
+                    div.innerHTML = `
+                        <h3 class="text-xl font-bold text-white">${job.title}</h3>
+                        <p class="text-gray-400 text-sm mb-4">${job.location} • <span class="text-green-400">${job.status}</span></p>
+                        <p class="text-gray-300 text-sm mb-6 line-clamp-3">${job.description}</p>
+                        <div class="flex gap-3">
+                            <button onclick="openApplyModal(${job.id}, '${job.title}')" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-semibold">Apply Now</button>
+                            <a href="/jobs/${job.id}/applicants" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg font-semibold text-center">View Applicants</a>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (err) {
+                document.getElementById('jobList').innerHTML = `<p class="text-red-400">${err.message}</p>`;
+            }
+        }
+
+        // --- 2. Open Apply Modal ---
+        function openApplyModal(id, title) {
+            document.getElementById('applyJobId').value = id;
+            document.getElementById('applyJobTitle').textContent = title;
+            document.getElementById('applyModal').classList.remove('hidden');
+        }
+
+        // --- 3. Post Job Logic ---
+        document.getElementById('postJobForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                title: document.getElementById('jobTitle').value,
+                location: document.getElementById('jobLocation').value,
+                description: document.getElementById('jobDesc').value
+            };
+
+            const res = await fetch('/api/ats/jobs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+
+            if(res.ok) {
+                alert("Job Posted Successfully! 🚀");
+                document.getElementById('postJobModal').classList.add('hidden');
+                loadJobs(); // Refresh list
+            } else {
+                const errData = await res.json();
+                alert(`Error posting job: ${errData.detail || "Unknown error"}`);
+                console.error(errData);
+            }
+        });
+
+        // --- 4. Apply Logic (Resume Upload) ---
+        document.getElementById('applyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const jobId = document.getElementById('applyJobId').value;
+            const formData = new FormData();
+            formData.append('candidate_name', document.getElementById('candidateName').value);
+            formData.append('candidate_email', document.getElementById('candidateEmail').value);
+            formData.append('file', document.getElementById('resumeFile').files[0]);
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.textContent = "Uploading & AI Scanning...";
+            btn.disabled = true;
+
+            const res = await fetch(`/api/ats/jobs/${jobId}/apply`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if(res.ok) {
+                alert("Application Sent! AI is analyzing your resume in background... 🧠");
+                document.getElementById('applyModal').classList.add('hidden');
+            } else {
+                alert("Upload failed");
+            }
+            btn.textContent = "Submit Application";
+            btn.disabled = false;
+        });
+
+        // Initial Load
+        loadJobs();
+    </script>
+</body>
+</html>

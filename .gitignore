@@ -205,3 +205,38 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+# --- Security (SABSE IMPORTANT) ---
+.env
+token.json
+credentials.json
+
+# --- Python Garbage (Compile files) ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Virtual Environment (Ye upload nahi karte) ---
+venv/
+env/
+.venv/
+
+# --- Temporary Upload Folders (Kachra files) ---
+# Hum resume/docs process karke delete kar dete hain, 
+# par agar kuch bacha ho to wo upload na ho.
+temp_uploads/
+temp_documents/
+uploads/
+
+# --- IDE Settings (VS Code settings) ---
+.vscode/
+.idea/
+
+# --- OS Files (Mac/Windows junk) ---
+.DS_Store
+Thumbs.db
+
+# --- Celery & Logs ---
+celerybeat-schedule
+*.log

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - TalentOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen flex items-center justify-center">
+
+    <div class="bg-gray-800 p-8 rounded-2xl shadow-xl border border-gray-700 w-full max-w-md">
+        <h1 class="text-3xl font-bold text-center text-indigo-400 mb-2">Welcome Back</h1>
+        <p class="text-gray-400 text-center mb-6">Login to TalentOS</p>
+
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <label class="block text-gray-400 text-sm mb-1">Email</label>
+                <input type="email" id="email" class="w-full p-3 bg-gray-900 border border-gray-600 rounded-lg focus:border-indigo-500 outline-none" required>
+            </div>
+            <div>
+                <label class="block text-gray-400 text-sm mb-1">Password</label>
+                <input type="password" id="password" class="w-full p-3 bg-gray-900 border border-gray-600 rounded-lg focus:border-indigo-500 outline-none" required>
+            </div>
+            
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 py-3 rounded-lg font-bold transition">
+                Sign In
+            </button>
+
+            <p class="text-center mt-4 text-gray-400 text-sm">
+                Don't have an account? <a href="/signup" class="text-indigo-400 hover:underline">Sign up</a>
+            </p>
+        </form>
+        <p id="errorMsg" class="text-red-400 text-center mt-4 text-sm"></p>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            // Form Data format is required for OAuth2PasswordRequestForm
+            const formData = new URLSearchParams();
+            formData.append('username', email);
+            formData.append('password', password);
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    // 🔥 SAVE TOKEN PERMANENTLY
+                    localStorage.setItem("access_token", data.access_token);
+                    window.location.href = "/dashboard"; // Redirect to Dashboard
+                } else {
+                    errorMsg.innerText = data.detail || "Login Failed";
+                }
+            } catch (err) {
+                console.error(err);
+                errorMsg.innerText = "Network Error";
+            }
+        });
+    </script>
+</body>
+</html>

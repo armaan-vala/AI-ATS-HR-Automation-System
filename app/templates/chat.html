@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI HR Chat - TalentOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans h-screen flex flex-col">
+
+    <header class="bg-gray-800 p-4 border-b border-gray-700 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-blue-400">🤖 AI HR Assistant</h1>
+        <a href="/documents" class="text-sm text-gray-400 hover:text-white">Manage Docs</a>
+    </header>
+
+    <div id="chatBox" class="flex-1 overflow-y-auto p-6 space-y-4">
+        <div class="flex justify-start">
+            <div class="bg-gray-700 p-3 rounded-lg max-w-lg text-sm">
+                Hello! I have read your company policies. Ask me anything!
+            </div>
+        </div>
+    </div>
+
+    <div class="p-4 bg-gray-800 border-t border-gray-700">
+        <form id="chatForm" class="flex gap-2">
+            <input type="text" id="userInput" placeholder="e.g. What is the leave policy?" 
+                   class="flex-1 p-3 bg-gray-900 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-bold">Send</button>
+        </form>
+    </div>
+
+    <script>
+        // --- AUTHENTICATION ---
+        const token = localStorage.getItem("access_token");
+        
+        // Agar token nahi hai, Login page par bhejo
+        if (!token) {
+            alert("You must login first!");
+            window.location.href = "/login";
+        }
+
+        const chatBox = document.getElementById('chatBox');
+
+        document.getElementById('chatForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // 1. Show User Message
+            appendMessage(message, 'user');
+            input.value = '';
+
+            // 2. Show Loading
+            const loadingId = appendMessage("Thinking...", 'ai', true);
+
+            try {
+                // 3. Send to API
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // 🔥 Token Added
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                if (res.status === 401) {
+                    alert("Session expired. Please login again.");
+                    window.location.href = "/login";
+                    return;
+                }
+
+                const data = await res.json();
+                
+                // 4. Remove Loading & Show AI Response
+                document.getElementById(loadingId).remove();
+                appendMessage(data.response, 'ai');
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById(loadingId).innerText = "Error getting response.";
+            }
+        });
+
+        function appendMessage(text, sender, isLoading = false) {
+            const div = document.createElement('div');
+            div.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+            if (isLoading) div.id = "loadingMsg";
+            
+            const bubble = document.createElement('div');
+            bubble.className = `p-3 rounded-lg max-w-lg text-sm ${sender === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200'}`;
+            
+            // Allow basic formatting
+            bubble.innerHTML = text.replace(/\n/g, '<br>');
+            
+            div.appendChild(bubble);
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            return div.id;
+        }
+    </script>
+</body>
+</html>

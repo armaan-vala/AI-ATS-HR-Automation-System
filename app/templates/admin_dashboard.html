@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - TalentOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen p-8">
+
+    <nav class="flex justify-between items-center mb-12 border-b border-gray-700 pb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-blue-400">TalentOS <span class="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded ml-2">ADMIN</span></h1>
+        </div>
+        <div class="flex gap-4">
+            <a href="/manage-employees" class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg font-bold transition">👥 Employees</a>
+            <button onclick="openSettingsModal()" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition">⚙️ Settings</button>
+            <button onclick="logout()" class="border border-red-400 text-red-400 px-4 py-2 rounded-lg hover:bg-red-900/20 transition">Logout</button>
+        </div>
+    </nav>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto mb-12">
+        
+        <div onclick="window.location.href='/admin/leave-requests'" class="bg-yellow-600/20 border border-yellow-500 p-6 rounded-2xl cursor-pointer hover:bg-yellow-600/30 transition transform hover:scale-105">
+            <h2 class="text-xl font-bold text-yellow-400 mb-2">Leave Requests</h2>
+            <div class="text-4xl font-bold text-white"><span id="dashboardPendingCount">0</span> <span class="text-sm font-normal text-gray-300">Pending</span></div>
+            <p class="text-xs text-gray-400 mt-2">AI has auto-filtered minor requests.</p>
+        </div>
+
+        <div onclick="window.location.href='/chat'" class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-blue-500 cursor-pointer transition hover:shadow-lg hover:shadow-blue-500/20">
+            <div class="text-4xl mb-4">🤖</div>
+            <h2 class="text-xl font-bold text-white">AI Chatbot</h2>
+            <p class="text-gray-400 text-sm mb-4">Test policy bot.</p>
+            <div class="text-blue-400 text-sm font-bold">Open Chat →</div>
+        </div>
+
+        <div onclick="window.location.href='/jobs'" class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-green-500 cursor-pointer transition hover:shadow-lg hover:shadow-green-500/20">
+            <div class="text-4xl mb-4">🚀</div>
+            <h2 class="text-xl font-bold text-white">Job Board</h2>
+            <p class="text-gray-400 text-sm mb-4">Manage ATS & Hiring.</p>
+            <div class="text-green-400 text-sm font-bold">Manage →</div>
+        </div>
+
+        <div onclick="openEmailModal()" class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-red-500 cursor-pointer transition hover:shadow-lg hover:shadow-red-500/20">
+            <div class="text-4xl mb-4">✉️</div>
+            <h2 class="text-xl font-bold text-white">Email Sender</h2>
+            <p class="text-gray-400 text-sm mb-4">Send bulk updates.</p>
+            <div class="text-red-400 text-sm font-bold">Compose →</div>
+        </div>
+
+        <div onclick="openMeetingModal()" class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-purple-500 cursor-pointer transition hover:shadow-lg hover:shadow-purple-500/20">
+            <div class="text-4xl mb-4">📅</div>
+            <h2 class="text-xl font-bold text-white">Scheduler</h2>
+            <p class="text-gray-400 text-sm mb-4">Set Google Meetings.</p>
+            <div class="text-purple-400 text-sm font-bold">Schedule →</div>
+        </div>
+
+        <div onclick="window.location.href='/documents'" class="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-cyan-500 cursor-pointer transition hover:shadow-lg hover:shadow-cyan-500/20">
+            <div class="text-4xl mb-4">📂</div>
+            <h2 class="text-xl font-bold text-white">Knowledge Base</h2>
+            <p class="text-gray-400 text-sm mb-4">Upload policies.</p>
+            <div class="text-cyan-400 text-sm font-bold">Upload →</div>
+        </div>
+    </div>
+
+   
+
+    <div id="emailModal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 p-8 rounded-2xl w-full max-w-lg border border-gray-700 shadow-2xl">
+            <h2 class="text-2xl font-bold text-white mb-4">✉️ Send Email</h2>
+            <form id="emailForm" class="space-y-4">
+                <input type="text" id="emailRecipients" placeholder="To: (comma separated emails)" class="w-full p-3 bg-gray-900 border border-gray-600 rounded text-white" required>
+                <input type="text" id="emailSubject" placeholder="Subject" class="w-full p-3 bg-gray-900 border border-gray-600 rounded text-white" required>
+                <textarea id="emailBody" rows="4" placeholder="Message..." class="w-full p-3 bg-gray-900 border border-gray-600 rounded text-white" required></textarea>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="document.getElementById('emailModal').classList.add('hidden')" class="px-4 py-2 bg-gray-700 rounded">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded font-bold">Send Now</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="meetingModal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 p-8 rounded-2xl w-full max-w-lg border border-gray-700 shadow-2xl">
+            <h2 class="text-2xl font-bold text-white mb-4">📅 Schedule Meeting</h2>
+            <form id="meetingForm" class="space-y-4">
+                <input type="text" id="meetTitle" placeholder="Meeting Title" class="w-full p-3 bg-gray-900 border border-gray-600 rounded text-white" required>
+                <input type="text" id="meetEmails" placeholder="Attendees (comma separated emails)" class="w-full p-3 bg-gray-900 border border-gray-600 rounded text-white" required>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="date" id="meetDate" class="w-full p-3 bg-gray-900 border border-gray-600 rounded text-white" required>
+                    <input type="time" id="meetTime" class="w-full p-3 bg-gray-900 border border-gray-600 rounded text-white" required>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="document.getElementById('meetingModal').classList.add('hidden')" class="px-4 py-2 bg-gray-700 rounded">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded font-bold">Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div class="bg-gray-800 p-8 rounded-2xl w-96 border border-gray-700">
+            <h2 class="text-xl font-bold mb-4">Company Settings</h2>
+            <label class="text-sm text-gray-400">Total Yearly Leaves</label>
+            <input type="number" id="yearlyLeaves" class="w-full p-2 bg-gray-900 border border-gray-600 rounded text-white mt-1 mb-4">
+            <button onclick="saveSettings()" class="w-full bg-blue-600 py-2 rounded font-bold">Save</button>
+            <button onclick="document.getElementById('settingsModal').classList.add('hidden')" class="w-full mt-2 text-gray-400">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // --- AUTH CHECK ---
+        const token = localStorage.getItem("access_token");
+        if(!token) window.location.href="/";
+
+        function logout() { localStorage.clear(); window.location.href="/"; }
+        
+        // --- MODAL OPENING LOGIC ---
+        function openEmailModal() { document.getElementById('emailModal').classList.remove('hidden'); }
+        function openMeetingModal() { document.getElementById('meetingModal').classList.remove('hidden'); }
+        
+        function openSettingsModal() {
+            document.getElementById('settingsModal').classList.remove('hidden');
+            // Fetch current value from API
+            fetch('/api/company/settings', { headers: { 'Authorization': `Bearer ${token}` } })
+                .then(res => res.json())
+                .then(data => {
+                    const input = document.getElementById('yearlyLeaves');
+                    if(input) input.value = data.yearly_leaves || 20;
+                });
+        }
+
+        // --- 1. DASHBOARD COUNT LOGIC (Fixed to prevent null error) ---
+        async function updateDashboardCount() {
+            try {
+                const res = await fetch('/api/leaves/company-requests', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (res.status !== 200) {
+                    console.error("API Failed:", res.status);
+                    document.getElementById('dashboardPendingCount').innerText = "Err";
+                    return;
+                }
+
+                const leaves = await res.json();
+                console.log("Fetched Leaves:", leaves); // Check Console
+
+                let pendingCount = 0;
+                if (Array.isArray(leaves)) {
+                    pendingCount = leaves.filter(l => l.status === 'Pending').length;
+                }
+
+                console.log("Pending Count:", pendingCount);
+                document.getElementById('dashboardPendingCount').innerText = pendingCount;
+
+            } catch (err) { console.error("Fetch Error:", err); }
+        }
+        updateDashboardCount();
+
+        // --- 2. EMAIL SENDING LOGIC ---
+        document.getElementById('emailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerText = "Sending..."; 
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('recipients', document.getElementById('emailRecipients').value);
+            formData.append('subject', document.getElementById('emailSubject').value);
+            formData.append('body', document.getElementById('emailBody').value);
+
+            try {
+                const res = await fetch('/api/tools/send-email', { 
+                    method: 'POST', 
+                    headers: { 'Authorization': `Bearer ${token}` }, 
+                    body: formData 
+                });
+                const data = await res.json();
+                alert(`Status: ${data.message} (Check Celery Terminal)`);
+                document.getElementById('emailModal').classList.add('hidden'); 
+                e.target.reset();
+            } catch (err) { 
+                alert("Failed to send email."); 
+                console.error(err);
+            }
+            btn.innerText = "Send Now"; 
+            btn.disabled = false;
+        });
+
+        // --- 3. MEETING SCHEDULER LOGIC ---
+        document.getElementById('meetingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerText = "Scheduling..."; 
+            btn.disabled = true;
+
+            const dateVal = document.getElementById('meetDate').value;
+            const timeVal = document.getElementById('meetTime').value;
+
+            // Timezone Fix Logic
+            const startDate = new Date(`${dateVal}T${timeVal}`);
+            const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // +1 Hour
+
+            const formatLocalISO = (date) => {
+                const pad = (n) => n < 10 ? '0' + n : n;
+                return date.getFullYear() + '-' + 
+                    pad(date.getMonth() + 1) + '-' + 
+                    pad(date.getDate()) + 'T' + 
+                    pad(date.getHours()) + ':' + 
+                    pad(date.getMinutes()) + ':00';
+            };
+
+            const payload = {
+                summary: document.getElementById('meetTitle').value,
+                start_time: formatLocalISO(startDate),
+                end_time: formatLocalISO(endDate),
+                emails: document.getElementById('meetEmails').value.split(',').map(e => e.trim())
+            };
+
+            try {
+                await fetch('/api/tools/schedule-meeting', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+                    body: JSON.stringify(payload) 
+                });
+                alert("Meeting Scheduling Started!");
+                document.getElementById('meetingModal').classList.add('hidden'); 
+                e.target.reset();
+            } catch (err) { 
+                alert("Failed to schedule meeting."); 
+            }
+            btn.innerText = "Schedule"; 
+            btn.disabled = false;
+        });
+
+        // --- 4. SETTINGS LOGIC ---
+        async function saveSettings() {
+            const val = document.getElementById('yearlyLeaves').value;
+            await fetch('/api/company/settings', { 
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+                body: JSON.stringify({ yearly_leaves: parseInt(val) }) 
+            });
+            document.getElementById('settingsModal').classList.add('hidden'); 
+            alert("Settings Saved!");
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Company Documents - TalentOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen p-10">
+
+    <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-3xl font-bold text-blue-400">📂 Company Knowledge Base</h1>
+                <p class="text-gray-400">Upload policies to train the AI Chatbot.</p>
+            </div>
+            <a href="/chat" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg font-bold">💬 Go to AI Chat</a>
+        </div>
+
+        <div class="bg-gray-800 p-8 rounded-xl border border-gray-700 text-center mb-10">
+            <input type="file" id="docInput" class="hidden" multiple accept=".pdf,.docx">
+            <label for="docInput" class="cursor-pointer block p-10 border-2 border-dashed border-gray-600 rounded-xl hover:border-blue-500 transition">
+                <p class="text-xl font-semibold">Click to Upload Policy Documents</p>
+                <p class="text-gray-500 text-sm mt-2">Supports PDF & DOCX</p>
+            </label>
+            <div id="uploadStatus" class="mt-4 text-sm text-yellow-400"></div>
+        </div>
+
+        <h2 class="text-xl font-bold mb-4">Uploaded Documents</h2>
+        <div id="docList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <p class="text-gray-500">Loading documents...</p>
+        </div>
+    </div>
+
+    <script>
+        // --- AUTHENTICATION (Token Logic) ---
+        // --- AUTHENTICATION ---
+            const token = localStorage.getItem("access_token");
+
+            // Agar token nahi hai, to Login page par bhejo
+            if (!token) {
+                alert("You must login first!");
+                window.location.href = "/login";
+            }
+
+        // --- 1. Upload Logic ---
+        document.getElementById('docInput').addEventListener('change', async (e) => {
+            const files = e.target.files;
+            if (files.length === 0) return;
+
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.innerText = "Uploading & Processing...";
+            statusDiv.className = "mt-4 text-sm text-yellow-400 animate-pulse";
+
+            try {
+                const res = await fetch('/api/documents/upload', {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}` // 🔥 Token Added
+                    },
+                    body: formData
+                });
+
+                if (res.ok) {
+                    alert("Documents uploaded! AI is processing them in background. 🧠");
+                    statusDiv.innerText = "";
+                    loadDocuments();
+                } else {
+                    const err = await res.json();
+                    alert(`Upload Failed: ${err.detail || "Unknown Error"}`);
+                    statusDiv.innerText = "Error uploading.";
+                    statusDiv.className = "mt-4 text-sm text-red-400";
+                }
+            } catch (err) { 
+                console.error(err);
+                alert("Network Error");
+            }
+        });
+
+        // --- 2. Load Documents Logic ---
+        async function loadDocuments() {
+            try {
+                const res = await fetch('/api/documents', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const docs = await res.json();
+                
+                const container = document.getElementById('docList');
+                container.innerHTML = '';
+
+                if (docs.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500">No documents uploaded yet.</p>';
+                    return;
+                }
+
+                docs.forEach(doc => {
+                    const div = document.createElement('div');
+                    div.className = "bg-gray-800 p-4 rounded-lg border border-gray-700 flex items-center gap-3 hover:border-blue-500 transition";
+                    div.innerHTML = `
+                        <span class="text-2xl">📄</span>
+                        <div class="overflow-hidden">
+                            <p class="font-bold text-white truncate w-64" title="${doc.filename}">${doc.filename}</p>
+                            <p class="text-xs text-green-400 flex items-center gap-1">
+                                <span class="w-2 h-2 bg-green-500 rounded-full inline-block"></span> Active & Indexed
+                            </p>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        // Initial Load
+        loadDocuments();
+    </script>
+</body>
+</html>

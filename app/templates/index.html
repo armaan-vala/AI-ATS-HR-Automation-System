@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - TalentOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen p-8">
+
+    <nav class="flex justify-between items-center mb-12 border-b border-gray-700 pb-4">
+        <div>
+            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                TalentOS
+            </h1>
+            <p class="text-gray-400 text-sm">AI-Powered HR Operating System</p>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <div id="adminControls" class="hidden flex gap-3">
+                <a href="/manage-employees" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold transition">
+                    <span>👥</span> Manage Employees
+                </a>
+                <button onclick="openSettingsModal()" class="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-bold transition border border-gray-500">
+                    <span>⚙️</span> Company Settings
+                </button>
+            </div>
+            
+            <button onclick="logout()" class="text-red-400 hover:text-red-300 font-semibold border border-red-400 px-4 py-2 rounded-lg hover:bg-red-900/20 transition">
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <div id="adminDashboard" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+        <div onclick="window.location.href='/chat'" class="group bg-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-blue-500 transition cursor-pointer h-64 flex flex-col justify-between">
+            <div><div class="w-12 h-12 bg-blue-900/50 rounded-lg flex items-center justify-center text-2xl mb-4">🤖</div><h2 class="text-xl font-bold text-white group-hover:text-blue-400">AI Policy Chat</h2><p class="text-gray-400 text-sm">Chat with documents.</p></div>
+            <div class="text-blue-400 text-sm font-semibold">Open Chat →</div>
+        </div>
+        <div onclick="window.location.href='/jobs'" class="group bg-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-green-500 transition cursor-pointer h-64 flex flex-col justify-between">
+            <div><div class="w-12 h-12 bg-green-900/50 rounded-lg flex items-center justify-center text-2xl mb-4">🚀</div><h2 class="text-xl font-bold text-white group-hover:text-green-400">Job Board</h2><p class="text-gray-400 text-sm">Post jobs & track applicants.</p></div>
+            <div class="text-green-400 text-sm font-semibold">Manage Jobs →</div>
+        </div>
+        <div onclick="openEmailModal()" class="group bg-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-red-500 transition cursor-pointer h-64 flex flex-col justify-between">
+            <div><div class="w-12 h-12 bg-red-900/50 rounded-lg flex items-center justify-center text-2xl mb-4">✉️</div><h2 class="text-xl font-bold text-white group-hover:text-red-400">Smart Emailer</h2><p class="text-gray-400 text-sm">Send bulk emails.</p></div>
+            <div class="text-red-400 text-sm font-semibold">Compose Email →</div>
+        </div>
+        <div onclick="window.location.href='/documents'" class="group bg-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-purple-500 transition cursor-pointer h-64 flex flex-col justify-between">
+            <div><div class="w-12 h-12 bg-purple-900/50 rounded-lg flex items-center justify-center text-2xl mb-4">📂</div><h2 class="text-xl font-bold text-white group-hover:text-purple-400">Knowledge Base</h2><p class="text-gray-400 text-sm">Upload Policies.</p></div>
+            <div class="text-purple-400 text-sm font-semibold">Manage Docs →</div>
+        </div>
+    </div>
+
+    <div id="employeeDashboard" class="hidden max-w-7xl mx-auto">
+        
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-300">My Overview</h2>
+            <button onclick="document.getElementById('leaveModal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white font-bold transition shadow-lg shadow-blue-500/30">
+                + Apply Leave
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-600 flex flex-col justify-between h-32">
+                <h3 class="text-gray-400 font-semibold uppercase text-xs">Total Yearly Leaves</h3>
+                <div class="text-4xl font-bold text-white"><span id="totalLeaves">--</span> <span class="text-lg font-normal text-gray-500">Days</span></div>
+            </div>
+            
+            <div class="bg-blue-600 p-6 rounded-xl shadow-lg flex flex-col justify-between h-32">
+                <h3 class="text-blue-100 font-semibold uppercase text-xs">Balance Remaining</h3>
+                <div class="text-4xl font-bold text-white"><span id="leaveBalance">--</span> <span class="text-lg font-normal">Days</span></div>
+            </div>
+            
+            <div class="bg-green-600 p-6 rounded-xl shadow-lg flex flex-col justify-between h-32">
+                <h3 class="text-green-100 font-semibold uppercase text-xs">Approved Requests</h3>
+                <div class="text-4xl font-bold text-white" id="leavesApproved">--</div>
+            </div>
+            
+            <div class="bg-purple-600 p-6 rounded-xl shadow-lg flex flex-col justify-between h-32">
+                <h3 class="text-purple-100 font-semibold uppercase text-xs">Organization</h3>
+                <div class="text-xl font-bold truncate text-white" id="companyNameCard">Loading...</div>
+            </div>
+        </div>
+
+        <h2 class="text-2xl font-bold mb-6 text-gray-300">AI Assistance</h2>
+        <div onclick="window.location.href='/chat'" class="group bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-2xl border border-blue-500/30 hover:border-blue-500 transition cursor-pointer flex items-center gap-6 max-w-2xl">
+            <div class="w-16 h-16 bg-blue-900/50 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition">🤖</div>
+            <div>
+                <h2 class="text-xl font-bold text-white mb-1 group-hover:text-blue-400">Ask HR Bot</h2>
+                <p class="text-gray-400 text-sm">Have a question? I can check policies for you.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 p-8 rounded-2xl w-full max-w-sm border border-gray-700">
+            <h2 class="text-2xl font-bold text-white mb-4">⚙️ Company Settings</h2>
+            <div class="mb-6">
+                <label class="text-gray-400 text-sm block mb-2">Total Yearly Leaves per Employee</label>
+                <input type="number" id="yearlyLeavesInput" class="w-full p-3 bg-gray-900 border border-gray-600 rounded text-white focus:border-yellow-500 outline-none" placeholder="e.g. 24">
+            </div>
+            <button onclick="saveSettings()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 rounded-lg font-bold mb-2">Save Changes</button>
+            <button onclick="document.getElementById('settingsModal').classList.add('hidden')" class="w-full text-gray-400 text-sm hover:text-white">Cancel</button>
+        </div>
+    </div>
+
+    <div id="leaveModal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 p-8 rounded-2xl w-full max-w-lg border border-gray-700">
+            <h2 class="text-2xl font-bold text-white mb-4">📝 Apply for Leave</h2>
+            <form id="leaveForm" class="space-y-4">
+                <textarea id="leaveReason" rows="3" placeholder="Reason (e.g. Sick, Vacation)" class="w-full p-3 bg-gray-900 border border-gray-600 rounded text-white" required></textarea>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="date" id="startDate" class="p-3 bg-gray-900 border border-gray-600 rounded text-white" required>
+                    <input type="date" id="endDate" class="p-3 bg-gray-900 border border-gray-600 rounded text-white" required>
+                </div>
+                <input type="number" id="daysCount" placeholder="Total Days" class="w-full p-3 bg-gray-900 border border-gray-600 rounded text-white" required>
+                
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" onclick="document.getElementById('leaveModal').classList.add('hidden')" class="px-4 py-2 bg-gray-700 rounded">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded font-bold text-white">Apply via AI</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="emailModal" class="hidden"></div> <script>
+        const token = localStorage.getItem("access_token");
+        const userRole = localStorage.getItem("user_role");
+        const userName = localStorage.getItem("user_name");
+
+        if (!token) window.location.href = "/login";
+
+        // --- DASHBOARD SWITCHING ---
+        if (userRole === "hr_admin") {
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            document.getElementById('adminControls').classList.remove('hidden'); // Show Buttons
+        } else {
+            document.getElementById('employeeDashboard').classList.remove('hidden');
+            fetchEmployeeStats(); // Employee specific data
+        }
+
+        // --- ADMIN: Settings Logic ---
+        function openSettingsModal() {
+            document.getElementById('settingsModal').classList.remove('hidden');
+            // Fetch current value
+            fetch('/api/company/settings', { headers: { 'Authorization': `Bearer ${token}` } })
+                .then(res => res.json())
+                .then(data => document.getElementById('yearlyLeavesInput').value = data.yearly_leaves);
+        }
+
+        async function saveSettings() {
+            const leaves = document.getElementById('yearlyLeavesInput').value;
+            const res = await fetch('/api/company/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ yearly_leaves: parseInt(leaves) })
+            });
+            if(res.ok) {
+                alert("Settings Updated Successfully!");
+                document.getElementById('settingsModal').classList.add('hidden');
+            }
+        }
+
+        // --- EMPLOYEE: Stats Logic ---
+        async function fetchEmployeeStats() {
+            try {
+                const res = await fetch('/api/leaves/my-stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                document.getElementById('totalLeaves').innerText = data.total_allocated;
+                document.getElementById('leaveBalance').innerText = data.balance;
+                document.getElementById('leavesApproved').innerText = data.accepted_count;
+                document.getElementById('companyNameCard').innerText = data.company_name;
+            } catch(err) { console.error(err); }
+        }
+
+        // --- EMPLOYEE: Leave Apply Logic ---
+        document.getElementById('leaveForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                reason: document.getElementById('leaveReason').value,
+                start_date: document.getElementById('startDate').value,
+                end_date: document.getElementById('endDate').value,
+                days: parseInt(document.getElementById('daysCount').value)
+            };
+
+            const res = await fetch('/api/leaves/apply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+            alert(`Status: ${result.status} 🚀\n(If 'Approved', balance will update instantly)`);
+            document.getElementById('leaveModal').classList.add('hidden');
+            fetchEmployeeStats(); // Refresh cards
+        });
+
+        function logout() {
+            if(confirm("Logout?")) {
+                localStorage.clear();
+                window.location.href = "/login";
+            }
+        }
+        function openEmailModal() { alert("Email modal logic from previous code"); }
+    </script>
+</body>
+</html>
