@@ -133,6 +133,7 @@ class LeaveRequest(Base):
     # AI Analysis
     ai_recommendation = Column(String) # "Approve" or "Review"
     ai_reason = Column(Text) # "Minor illness, within limits"
-    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     user = relationship("User", back_populates="leaves")
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
